@@ -21,7 +21,7 @@ export interface GenerateClient {
     generateContent: (params: {
       model: string;
       contents: Content[];
-      config: { systemInstruction: string; tools: { functionDeclarations: FunctionDeclaration[] }[]; maxOutputTokens: number };
+      config: { systemInstruction: string; tools: { functionDeclarations: FunctionDeclaration[] }[]; maxOutputTokens: number; thinkingConfig?: { thinkingLevel: string } };
     }) => Promise<GenerateResponse>;
   };
 }
@@ -268,7 +268,8 @@ export async function llmTurn(
     const response = await opts.client.models.generateContent({
       model,
       contents,
-      config: { systemInstruction: SYSTEM, tools: [{ functionDeclarations: TOOLS }], maxOutputTokens: 4000 },
+      // Field extraction needs little reasoning, and minimal thinking keeps each turn well under the page timeout.
+      config: { systemInstruction: SYSTEM, tools: [{ functionDeclarations: TOOLS }], maxOutputTokens: 4000, thinkingConfig: { thinkingLevel: 'MINIMAL' } },
     });
     const finish = response.candidates?.[0]?.finishReason;
     if (finish === 'SAFETY' || finish === 'BLOCKLIST' || finish === 'PROHIBITED_CONTENT') throw new Error('Model declined the request');
@@ -303,6 +304,6 @@ export async function llmTurn(
 export function createClient(): GenerateClient | null {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return null;
-  // A slow model call must not leave the seller waiting: after 20 s the rule-based assistant answers.
-  return new GoogleGenAI({ apiKey, httpOptions: { timeout: 20_000, retryOptions: { attempts: 1 } } }) as unknown as GenerateClient;
+  // A slow model call must not leave the seller waiting: after 25 s the rule-based assistant answers.
+  return new GoogleGenAI({ apiKey, httpOptions: { timeout: 25_000, retryOptions: { attempts: 1 } } }) as unknown as GenerateClient;
 }
