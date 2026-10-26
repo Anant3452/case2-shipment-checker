@@ -1,0 +1,5 @@
+{
+  "_comment": "todayOverride: set to an ISO date (YYYY-MM-DD) to pin 'today' for demos and tests. null uses the current date in timeZone. The TODAY environment variable takes precedence.",
+  "todayOverride": null,
+  "timeZone": "Europe/London"
+}

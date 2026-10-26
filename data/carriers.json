@@ -1,0 +1,89 @@
+{
+  "source": {
+    "file": "Case2_Shipment_Booking_Test_Data_Format.DUMMY.xlsx",
+    "kind": "dummy",
+    "importedAt": "2026-10-26T07:42:46.583Z"
+  },
+  "carriers": [
+    {
+      "carrier": "Carrier A",
+      "service": "Road economy",
+      "originCountry": "United Kingdom",
+      "destinationCountry": "Germany",
+      "pricePerPallet": 180,
+      "transitDays": 5,
+      "onTimeRate": 92,
+      "maxWeightPerPalletKg": 500
+    },
+    {
+      "carrier": "Carrier B",
+      "service": "Road express",
+      "originCountry": "United Kingdom",
+      "destinationCountry": "Germany",
+      "pricePerPallet": 240,
+      "transitDays": 3,
+      "onTimeRate": 95,
+      "maxWeightPerPalletKg": 600
+    },
+    {
+      "carrier": "Carrier C",
+      "service": "Groupage standard",
+      "originCountry": "United Kingdom",
+      "destinationCountry": "Germany",
+      "pricePerPallet": 165,
+      "transitDays": 7,
+      "onTimeRate": 85,
+      "maxWeightPerPalletKg": 400
+    },
+    {
+      "carrier": "Carrier B",
+      "service": "Road express",
+      "originCountry": "United Kingdom",
+      "destinationCountry": "France",
+      "pricePerPallet": 230,
+      "transitDays": 2,
+      "onTimeRate": 94,
+      "maxWeightPerPalletKg": 600
+    },
+    {
+      "carrier": "Carrier C",
+      "service": "Groupage standard",
+      "originCountry": "United Kingdom",
+      "destinationCountry": "France",
+      "pricePerPallet": 150,
+      "transitDays": 6,
+      "onTimeRate": 86,
+      "maxWeightPerPalletKg": 400
+    },
+    {
+      "carrier": "Carrier A",
+      "service": "Road economy",
+      "originCountry": "United Kingdom",
+      "destinationCountry": "Netherlands",
+      "pricePerPallet": 175,
+      "transitDays": 4,
+      "onTimeRate": 93,
+      "maxWeightPerPalletKg": 500
+    },
+    {
+      "carrier": "Carrier B",
+      "service": "Road express",
+      "originCountry": "United Kingdom",
+      "destinationCountry": "Netherlands",
+      "pricePerPallet": 235,
+      "transitDays": 2,
+      "onTimeRate": 96,
+      "maxWeightPerPalletKg": 600
+    },
+    {
+      "carrier": "Carrier D",
+      "service": "Ferry freight",
+      "originCountry": "United Kingdom",
+      "destinationCountry": "Netherlands",
+      "pricePerPallet": 155,
+      "transitDays": 5,
+      "onTimeRate": 88,
+      "maxWeightPerPalletKg": 450
+    }
+  ]
+}

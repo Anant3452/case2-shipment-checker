@@ -1,0 +1,4 @@
+{
+  "_comment": "Balanced priority weights. Each factor is min-max normalised across eligible carriers (cost and transit inverted). Weights must sum to 1.",
+  "balancedWeights": { "cost": 0.4, "speed": 0.3, "reliability": 0.3 }
+}

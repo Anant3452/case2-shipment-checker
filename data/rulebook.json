@@ -1,0 +1,59 @@
+{
+  "source": {
+    "file": "Case2_Shipment_Booking_Test_Data_Format.DUMMY.xlsx",
+    "kind": "dummy",
+    "importedAt": "2026-10-26T07:42:46.583Z"
+  },
+  "rules": [
+    {
+      "ruleId": "R-01",
+      "rule": "Every item must have an HS code of at least 6 digits",
+      "severity": "Red"
+    },
+    {
+      "ruleId": "R-02",
+      "rule": "Total declared value must equal the sum of quantity × unit price across all items (within 1%)",
+      "severity": "Red"
+    },
+    {
+      "ruleId": "R-03",
+      "rule": "For each item, units per carton × cartons must equal quantity",
+      "severity": "Red"
+    },
+    {
+      "ruleId": "R-04",
+      "rule": "Total cartons on the booking must equal the sum of cartons across all items",
+      "severity": "Red"
+    },
+    {
+      "ruleId": "R-05",
+      "rule": "Weight per pallet (total gross weight ÷ pallets) must not exceed the chosen carrier's max weight per pallet",
+      "severity": "Red"
+    },
+    {
+      "ruleId": "R-06",
+      "rule": "No lithium batteries, aerosols or flammable liquids",
+      "severity": "Red"
+    },
+    {
+      "ruleId": "R-07",
+      "rule": "Total gross weight must be at least the sum of unit weight × quantity across all items",
+      "severity": "Amber"
+    },
+    {
+      "ruleId": "R-08",
+      "rule": "Shipments to a warehouse must have a delivery appointment booked",
+      "severity": "Amber"
+    },
+    {
+      "ruleId": "R-09",
+      "rule": "Every item must have a country of origin",
+      "severity": "Amber"
+    },
+    {
+      "ruleId": "R-10",
+      "rule": "Ready to ship date must not be in the past",
+      "severity": "Amber"
+    }
+  ]
+}

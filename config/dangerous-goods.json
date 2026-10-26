@@ -1,0 +1,25 @@
+{
+  "_comment": "R-06 keywords. Matched case-insensitively on word boundaries against SKU and description. Add a keyword by appending it to the list with its category.",
+  "keywords": [
+    { "keyword": "battery", "category": "lithium batteries" },
+    { "keyword": "batteries", "category": "lithium batteries" },
+    { "keyword": "lithium", "category": "lithium batteries" },
+    { "keyword": "li-ion", "category": "lithium batteries" },
+    { "keyword": "aerosol", "category": "aerosols" },
+    { "keyword": "spray", "category": "aerosols" },
+    { "keyword": "adhesive spray", "category": "aerosols" },
+    { "keyword": "paint", "category": "flammable liquids" },
+    { "keyword": "solvent", "category": "flammable liquids" },
+    { "keyword": "thinner", "category": "flammable liquids" },
+    { "keyword": "alcohol-based", "category": "flammable liquids" },
+    { "keyword": "fuel", "category": "flammable liquids" },
+    { "keyword": "petrol", "category": "flammable liquids" },
+    { "keyword": "gasoline", "category": "flammable liquids" },
+    { "keyword": "diesel", "category": "flammable liquids" },
+    { "keyword": "lighter fluid", "category": "flammable liquids" },
+    { "keyword": "nail polish remover", "category": "flammable liquids" },
+    { "keyword": "acetone", "category": "flammable liquids" },
+    { "keyword": "varnish", "category": "flammable liquids" },
+    { "keyword": "lacquer", "category": "flammable liquids" }
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "source": {
+    "file": "Case2_Shipment_Booking_Test_Data_Format.DUMMY.xlsx",
+    "kind": "dummy",
+    "importedAt": "2026-10-26T07:42:46.583Z"
+  },
+  "glossary": [
+    {
+      "column": "Booking ID",
+      "meaning": "Reference label for each shipment."
+    },
+    {
+      "column": "Seller name",
+      "meaning": "Business sending the goods."
+    },
+    {
+      "column": "Origin city / Origin country",
+      "meaning": "Where the goods are collected from."
+    },
+    {
+      "column": "Destination city / Destination country",
+      "meaning": "Where the goods are delivered."
+    },
+    {
+      "column": "Destination type",
+      "meaning": "Kind of site receiving the goods: Warehouse or Business address."
+    },
+    {
+      "column": "Ready to ship date",
+      "meaning": "Day the goods will be packed and ready for collection (DD-MM-YYYY)."
+    },
+    {
+      "column": "Seller priority",
+      "meaning": "What matters most to the seller. Most reliable = highest on-time rate; Balanced = no strong preference, best trade-off of cost, speed and reliability."
+    },
+    {
+      "column": "Pallets",
+      "meaning": "Number of pallets, as the seller states it. A pallet is a platform holding many cartons."
+    },
+    {
+      "column": "Cartons",
+      "meaning": "Total cartons, as the seller states it. A carton is a box of units."
+    },
+    {
+      "column": "Total declared value",
+      "meaning": "Total value of the goods, as the seller states it."
+    },
+    {
+      "column": "Currency",
+      "meaning": "Currency of every money value. GBP only."
+    },
+    {
+      "column": "Total gross weight (kg)",
+      "meaning": "Weight of everything shipped, including cartons and pallets, as the seller states it."
+    },
+    {
+      "column": "Delivery appointment booked",
+      "meaning": "Whether the seller has a delivery time slot booked at the receiving site."
+    },
+    {
+      "column": "SKU / Description",
+      "meaning": "Seller's product code and a plain description."
+    },
+    {
+      "column": "HS code",
+      "meaning": "Customs code that classifies the product, as the seller states it. May be blank."
+    },
+    {
+      "column": "Quantity (units)",
+      "meaning": "Total units of this product, as the seller states it."
+    },
+    {
+      "column": "Unit price",
+      "meaning": "Price of one unit, in GBP."
+    },
+    {
+      "column": "Units per carton",
+      "meaning": "Units packed in one carton."
+    },
+    {
+      "column": "Unit weight (kg)",
+      "meaning": "Weight of one unit."
+    },
+    {
+      "column": "Country of origin",
+      "meaning": "Where the product was made, not where it ships from. May be blank."
+    },
+    {
+      "column": "Carrier / Service",
+      "meaning": "Carrier name and its service level."
+    },
+    {
+      "column": "Price per pallet",
+      "meaning": "Cost to ship one pallet, in GBP."
+    },
+    {
+      "column": "Transit time (days)",
+      "meaning": "Days from collection to delivery."
+    },
+    {
+      "column": "On-time rate (%)",
+      "meaning": "Share of shipments that arrive on the promised day."
+    },
+    {
+      "column": "Max weight per pallet (kg)",
+      "meaning": "Heaviest pallet the service accepts."
+    }
+  ]
+}
