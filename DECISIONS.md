@@ -16,7 +16,7 @@ R-02 passes when `abs(declared − calculated) ≤ 0.01 × calculated`. Relative
 - **Missing HS code:** R-01 is Red and points to the UK Trade Tariff. The chat never guesses a code from a product name.
 
 ## Fallback and why it exists
-The app must never break, and judges may run it without a key. With no `ANTHROPIC_API_KEY`, or if a Claude call fails, a rule-based slot-filler (regex and keyword matching in `src/chat/fallback.ts`) handles cities, countries, numbers, dates, priority and items, and writes through the same state functions. A failed Claude call falls back for that turn and shows a notice. Both paths produce the same checks.
+The app must never break, and judges may run it without a key. With no `GEMINI_API_KEY`, or if a Gemini call fails, a rule-based slot-filler (regex and keyword matching in `src/chat/fallback.ts`) handles cities, countries, numbers, dates, priority and items, and writes through the same state functions. A failed Claude call falls back for that turn and shows a notice. Both paths produce the same checks.
 
 ## What is out of scope and why (brief section 2)
 - **No carrier bookings, labels, customs filing or HS lookup:** the brief excludes them, and a live lookup would invent authority the MVP doesn't have.

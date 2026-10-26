@@ -1,4 +1,4 @@
-// Rule-based slot-filler: used when ANTHROPIC_API_KEY is unset or the API call fails.
+// Rule-based slot-filler: used when GEMINI_API_KEY is unset or the API call fails.
 // Regex and keyword matching for cities, countries, numbers, dates, priority and items.
 // It writes through the same state functions as the Claude tools, so the checks are identical.
 

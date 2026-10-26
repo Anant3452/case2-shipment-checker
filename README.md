@@ -8,19 +8,19 @@ npm install
 npm run build          # builds the UI into dist/
 npm start              # http://localhost:3000
 ```
-Optional: copy `.env.example` to `.env` and set `ANTHROPIC_API_KEY` to use Claude for the chat. Without a key the rule-based assistant runs.
+Optional: copy `.env.example` to `.env` and set `GEMINI_API_KEY` to use Gemini for the chat. Without a key the rule-based assistant runs.
 
 ## Deploy
 Any Node host works (Render, Railway).
 - **Build command:** `npm install && npm run build`
 - **Start command:** `npm start`
 - **Health check:** `GET /health`
-- **Secrets:** set `ANTHROPIC_API_KEY` as a host secret. Never commit it.
+- **Secrets:** set `GEMINI_API_KEY` as a host secret. Never commit it.
 - **Node:** 20 or later.
 
 ## Architecture
 1. Deterministic rules in `src/domain/` (pure functions, no I/O): R-01 to R-10, carrier ranking, status, confirmation.
-2. Chat in `src/chat/`: Claude extracts fields through tools; the server applies them and re-runs the checks; the model phrases the results.
+2. Chat in `src/chat/`: Gemini extracts fields through tools; the server applies them and re-runs the checks; the model phrases the results.
 3. Rule-based fallback in `src/chat/fallback.ts`, used when there is no key or a Claude call fails.
 4. Upload in `src/upload/`: parses xlsx and csv, joins on Booking ID, reports bad cells with references.
 5. Express API in `src/server/` (`/api/chat`, `/api/upload`, `/health`) serving the built React UI in `ui/`.
@@ -53,7 +53,7 @@ npm run typecheck
 Fixtures are in `test/fixtures/` and regenerate with `npm run make-fixtures`.
 
 ## Fallback
-Without `ANTHROPIC_API_KEY`, or if a Claude call fails, the app answers with the rule-based slot-filler. The checks are the same. The UI shows which assistant answered.
+Without `GEMINI_API_KEY`, or if a Gemini call fails, the app answers with the rule-based slot-filler. The checks are the same. The UI shows which assistant answered.
 
 ## Limitations
 The real template was not available when this was built, so the rate card is placeholder except the Carrier A UK → Germany row. See `DECISIONS.md`.

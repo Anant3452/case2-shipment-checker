@@ -21,7 +21,7 @@ export function createApp(opts: { uiDist?: string } = {}): express.Express {
 
   app.disable('x-powered-by');
   app.get('/health', (_req, res) => {
-    res.json({ ok: true, claude: Boolean(process.env.ANTHROPIC_API_KEY), today: today() });
+    res.json({ ok: true, ai: Boolean(process.env.GEMINI_API_KEY), today: today() });
   });
 
   app.post('/api/chat', express.json({ limit: '200kb' }), async (req, res) => {

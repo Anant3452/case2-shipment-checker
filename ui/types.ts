@@ -30,7 +30,7 @@ export interface ChatResponse {
   state: unknown;
   reply: string;
   evaluation: Evaluation;
-  engine: 'claude' | 'fallback';
+  engine: 'gemini' | 'fallback';
   notice?: string;
 }
 

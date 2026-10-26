@@ -76,7 +76,7 @@ export function Chat() {
             <FindingList findings={latest.evaluation.findings} />
             <CarrierCard rec={latest.evaluation.recommendation} />
             <Confirmation status={latest.evaluation.status} confirmation={latest.evaluation.confirmation} complete={latest.evaluation.complete} />
-            <p className="engine muted">Assistant: {latest.engine === 'claude' ? 'Claude' : 'rule-based (no AI key)'}</p>
+            <p className="engine muted">Assistant: {latest.engine === 'gemini' ? 'Gemini' : 'rule-based (no AI key)'}</p>
           </>
         ) : (
           <p className="muted">The checks appear here as you describe the shipment.</p>

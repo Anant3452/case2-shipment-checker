@@ -1,8 +1,8 @@
-// Claude as the conversation layer. The model extracts fields and writes them through
-// tools; after every change the server re-runs validateBooking and recommendCarriers and
+// Gemini as the conversation layer. The model extracts fields and writes them through
+// function calls; after every change the server re-runs validateBooking and recommendCarriers and
 // hands the results back. The model phrases those results; it never decides pass or fail.
 
-import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenAI, type Content, type FunctionDeclaration } from '@google/genai';
 import {
   DESTINATIONS, DESTINATION_TYPES, ITEM_ORIGIN_COUNTRIES, ORIGIN_CITIES, SELLER_PRIORITIES,
   displayDate, money, type Carrier,
@@ -13,11 +13,24 @@ import {
   type ChatState, type Evaluation,
 } from './state';
 
-export const DEFAULT_MODEL = 'claude-sonnet-5-5';
+export const DEFAULT_MODEL = 'gemini-3.5-flash-lite';
 
-/** The subset of the SDK client this module uses, so tests can script responses. */
-export interface MessagesClient {
-  beta: { messages: { create: (params: Anthropic.Beta.MessageCreateParamsNonStreaming) => Promise<Anthropic.Beta.BetaMessage> } };
+/** The subset of the Gemini client this module uses, so tests can script responses. */
+export interface GenerateClient {
+  models: {
+    generateContent: (params: {
+      model: string;
+      contents: Content[];
+      config: { systemInstruction: string; tools: { functionDeclarations: FunctionDeclaration[] }[]; maxOutputTokens: number };
+    }) => Promise<GenerateResponse>;
+  };
+}
+
+/** Only the fields this module reads from a response. */
+export interface GenerateResponse {
+  text?: string;
+  functionCalls?: { id?: string; name?: string; args?: Record<string, unknown> }[];
+  candidates?: { content?: Content; finishReason?: string }[];
 }
 
 export interface HistoryTurn {
@@ -30,7 +43,7 @@ const ALL_DEST_CITIES = Object.values(DESTINATIONS).flat();
 const SYSTEM = `You are the booking assistant for a UK-to-EU freight service. A small-business seller describes a shipment in plain language; you turn it into a complete, checked booking.
 
 How you work:
-- Record every fact the seller gives by calling tools (update_booking, update_items, set_field, remove_item) BEFORE you reply. Capture all facts in a message, not just the first one.
+- Record every fact the seller gives by calling the tools (update_booking, update_items, set_field, remove_item) BEFORE you reply. Capture all facts in a message, not just the first one.
 - After each tool call you get back the checks: findings (rule ID, severity, message, fix), the carrier recommendation, and the list of missing details in priority order. These come from deterministic code. Never decide yourself whether a rule passes, never compute totals, prices, weights per pallet or dates yourself, and never contradict the tool results. Quote their numbers.
 - Never ask for something the seller already said. Never invent values. If you are unsure, ask.
 
@@ -57,15 +70,13 @@ Messy input:
 - Items: collect one product at a time. When a product is complete, ask "Anything else?". When the seller says that's all, call update_items with items_complete=true. Support edits and removal ("remove the kettles").
 - If the seller writes in another language, reply in English and say which language you noticed.
 
-Dates: resolve relative dates ("next Thursday") against today's date given in the context, record YYYY-MM-DD, and say the date back ("Thursday 29 Oct 2026") so the seller can correct it.`;
+Dates: resolve relative dates ("next Thursday") against today's date given in the context, record YYYY-MM-DD, and say the date back so the seller can correct it. Only name a weekday when the context gives it, and copy it exactly.`;
 
-const nullable = (schema: Record<string, unknown>) => ({ anyOf: [schema, { type: 'null' }] });
-
-const TOOLS: Anthropic.Beta.BetaTool[] = [
+const TOOLS: FunctionDeclaration[] = [
   {
     name: 'update_booking',
     description: 'Set booking-level fields the seller stated. Only include fields you are setting. Returns the updated checks.',
-    input_schema: {
+    parametersJsonSchema: {
       type: 'object',
       properties: {
         sellerName: { type: 'string' },
@@ -84,13 +95,12 @@ const TOOLS: Anthropic.Beta.BetaTool[] = [
         approximate_fields: { type: 'array', items: { type: 'string' }, description: 'Fields the seller hedged on, e.g. ["pallets"].' },
         conversions: { type: 'array', items: { type: 'string' }, description: 'Unit conversions you made, e.g. "1.2 t = 1,200 kg".' },
       },
-      additionalProperties: false,
     },
   },
   {
     name: 'update_items',
     description: 'Add products, or update existing ones. To update, set match to the existing SKU or description. Only include fields the seller stated. Returns the updated checks.',
-    input_schema: {
+    parametersJsonSchema: {
       type: 'object',
       properties: {
         items: {
@@ -109,38 +119,34 @@ const TOOLS: Anthropic.Beta.BetaTool[] = [
               unitWeightKg: { type: 'number' },
               countryOfOrigin: { type: 'string', enum: [...ITEM_ORIGIN_COUNTRIES] },
             },
-            additionalProperties: false,
           },
         },
         items_complete: { type: 'boolean', description: 'True when the seller says there are no more products.' },
       },
-      additionalProperties: false,
     },
   },
   {
     name: 'set_field',
     description: 'Clear a field (value null), or mark a detail the seller does not know (unknown=true) so it is not asked again.',
-    input_schema: {
+    parametersJsonSchema: {
       type: 'object',
       properties: {
         target: { type: 'string', enum: ['booking', 'item'] },
         item: { type: 'string', description: 'SKU or description, when target is item.' },
         field: { type: 'string' },
-        value: nullable({ type: ['string', 'number'] }),
+        value: { type: 'string', description: 'The new value as text. Use null to clear the field.' },
         unknown: { type: 'boolean' },
       },
       required: ['target', 'field'],
-      additionalProperties: false,
     },
   },
   {
     name: 'remove_item',
     description: 'Remove a product from the booking.',
-    input_schema: {
+    parametersJsonSchema: {
       type: 'object',
       properties: { item: { type: 'string', description: 'SKU or description, e.g. "kettles".' } },
       required: ['item'],
-      additionalProperties: false,
     },
   },
 ];
@@ -167,15 +173,24 @@ export function checksForModel(ev: Evaluation): Record<string, unknown> {
   };
 }
 
+/** Weekday name for an ISO date, computed here so the model never guesses it. */
+function weekday(iso: string): string {
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-GB', { weekday: 'long', timeZone: 'UTC' });
+}
+
 function contextBlock(state: ChatState, ev: Evaluation, today: string): string {
   return `<context>
-Today: ${displayDate(today)} (${today}).
+Today: ${displayDate(today)} (${weekday(today)}, ${today}).
+Ready-to-ship date: ${state.booking.readyToShipDate ? `${displayDate(state.booking.readyToShipDate)} (${weekday(state.booking.readyToShipDate)})` : 'not set'}.
 Current booking record: ${JSON.stringify({ booking: state.booking, items: state.items, approximate: state.meta.approximate, unknown: state.meta.unknown, itemsComplete: state.meta.itemsDone })}
 Current checks: ${JSON.stringify(checksForModel(ev))}
 </context>`;
 }
 
-function runTool(state: ChatState, name: string, input: Record<string, unknown>): { changed: string[]; errors: string[] } {
+interface ToolOutcome { changed: string[]; errors: string[] }
+
+function runTool(state: ChatState, name: string, input: Record<string, unknown>): ToolOutcome {
   const changed: string[] = [];
   const errors: string[] = [];
   const attempt = (fn: () => void) => {
@@ -230,67 +245,63 @@ function runTool(state: ChatState, name: string, input: Record<string, unknown>)
 }
 
 export interface LlmTurnOptions {
-  client: MessagesClient;
+  client: GenerateClient;
   model?: string;
   maxIterations?: number;
 }
 
 /**
- * One conversation turn with Claude. Mutates `state`. Throws on any API problem so the
+ * One conversation turn with Gemini. Mutates `state`. Throws on any API problem so the
  * caller can fall back to the rule-based slot-filler with the untouched original state.
  */
 export async function llmTurn(
   state: ChatState, history: HistoryTurn[], message: string, today: string, carriers: Carrier[], opts: LlmTurnOptions,
 ): Promise<{ reply: string; evaluation: Evaluation }> {
-  const model = opts.model ?? process.env.ANTHROPIC_MODEL ?? DEFAULT_MODEL;
+  const model = opts.model ?? process.env.GEMINI_MODEL ?? DEFAULT_MODEL;
   const before = evaluate(state, today, carriers);
-  const messages: Anthropic.Beta.BetaMessageParam[] = [
-    ...history.slice(-20).map((h) => ({ role: h.role, content: h.text })),
-    { role: 'user', content: `${contextBlock(state, before, today)}\n\nSeller: ${message}` },
+  const contents: Content[] = [
+    ...history.slice(-20).map((h): Content => ({ role: h.role === 'assistant' ? 'model' : 'user', parts: [{ text: h.text }] })),
+    { role: 'user', parts: [{ text: `${contextBlock(state, before, today)}\n\nSeller: ${message}` }] },
   ];
-  // Claude API refusal fallbacks are only accepted by current-generation models.
-  const fallback = /^claude-(sonnet-5-5|opus-5|fable-5)/.test(model)
-    ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' as const }
-    : {};
 
   for (let i = 0; i < (opts.maxIterations ?? 6); i++) {
-    const response = await opts.client.beta.messages.create({
+    const response = await opts.client.models.generateContent({
       model,
-      max_tokens: 4000,
-      system: [{ type: 'text', text: SYSTEM, cache_control: { type: 'ephemeral' } }],
-      tools: TOOLS,
-      output_config: { effort: 'low' },
-      messages,
-      ...fallback,
-    } as Anthropic.Beta.MessageCreateParamsNonStreaming);
+      contents,
+      config: { systemInstruction: SYSTEM, tools: [{ functionDeclarations: TOOLS }], maxOutputTokens: 4000 },
+    });
+    const finish = response.candidates?.[0]?.finishReason;
+    if (finish === 'SAFETY' || finish === 'BLOCKLIST' || finish === 'PROHIBITED_CONTENT') throw new Error('Model declined the request');
+    if (finish === 'MAX_TOKENS') throw new Error('Model reply was cut off');
 
-    if (response.stop_reason === 'refusal') throw new Error('Model declined the request');
-    if (response.stop_reason === 'max_tokens') throw new Error('Model reply was cut off');
-
-    const toolUses = response.content.filter((b): b is Anthropic.Beta.BetaToolUseBlock => b.type === 'tool_use');
-    if (response.stop_reason !== 'tool_use' || toolUses.length === 0) {
-      const reply = response.content.filter((b): b is Anthropic.Beta.BetaTextBlock => b.type === 'text').map((b) => b.text).join('\n').trim();
+    const calls = response.functionCalls ?? [];
+    if (calls.length === 0) {
+      const reply = (response.text ?? '').trim();
       if (!reply) throw new Error('Model returned no text');
       return { reply, evaluation: evaluate(state, today, carriers) };
     }
 
-    messages.push({ role: 'assistant', content: response.content });
-    const results: Anthropic.Beta.BetaToolResultBlockParam[] = toolUses.map((tu) => {
-      const { changed, errors } = runTool(state, tu.name, (tu.input ?? {}) as Record<string, unknown>);
+    // Keep the model's own turn (including its function-call parts) in the history, then answer every call.
+    const modelContent: Content = response.candidates?.[0]?.content ?? { role: 'model', parts: calls.map((c) => ({ functionCall: c })) };
+    contents.push(modelContent);
+    const parts = calls.map((call) => {
+      const { changed, errors } = runTool(state, call.name ?? '', (call.args ?? {}) as Record<string, unknown>);
       const ev = evaluate(state, today, carriers);
       return {
-        type: 'tool_result',
-        tool_use_id: tu.id,
-        is_error: errors.length > 0 && changed.length === 0,
-        content: JSON.stringify({ changed, errors, checks: checksForModel(ev) }),
+        functionResponse: {
+          id: call.id,
+          name: call.name,
+          response: { changed, errors, checks: checksForModel(ev) },
+        },
       };
     });
-    messages.push({ role: 'user', content: results });
+    contents.push({ role: 'user', parts });
   }
   throw new Error('Too many tool iterations');
 }
 
-export function createClient(): MessagesClient | null {
-  if (!process.env.ANTHROPIC_API_KEY) return null;
-  return new Anthropic({ maxRetries: 1, timeout: 45_000 }) as unknown as MessagesClient;
+export function createClient(): GenerateClient | null {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return null;
+  return new GoogleGenAI({ apiKey }) as unknown as GenerateClient;
 }
