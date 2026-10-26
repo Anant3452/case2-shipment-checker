@@ -72,7 +72,7 @@ bg.fill.solid(); bg.fill.fore_color.rgb = NAVY; bg.line.fill.background()
 text(s, 0.8, 1.6, 11.5, 1.6, ["Catch shipment mistakes before they leave"], size=44, color=WHITE, bold=True)
 text(s, 0.8, 3.1, 11.5, 0.8, ["Case 2: Conversational Shipment Booking & Pre-Flight Error Checker"], size=22, color=WHITE)
 text(s, 0.8, 4.4, 11.5, 1.6, [
-    "Team: Anant Jain and [partner name]",
+    "Team: Anant Jain and Anshu Tolasaria",
     f"MVP link: {LIVE}",
     "Video link: [add before submitting]",
 ], size=18, color=WHITE)
