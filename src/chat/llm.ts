@@ -303,5 +303,6 @@ export async function llmTurn(
 export function createClient(): GenerateClient | null {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return null;
-  return new GoogleGenAI({ apiKey }) as unknown as GenerateClient;
+  // A slow model call must not leave the seller waiting: after 20 s the rule-based assistant answers.
+  return new GoogleGenAI({ apiKey, httpOptions: { timeout: 20_000, retryOptions: { attempts: 1 } } }) as unknown as GenerateClient;
 }
