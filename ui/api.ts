@@ -7,9 +7,9 @@ async function json<T>(res: Response): Promise<T> {
 }
 
 export async function sendChat(state: unknown, history: { role: 'user' | 'assistant'; text: string }[], message: string): Promise<ChatResponse> {
-  // Free hosting can take a while to wake; give up after 45 s rather than showing "Checking..." forever.
+  // Free hosting can take a while to wake; give up after 60 s rather than showing "Checking..." forever.
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 45_000);
+  const timer = setTimeout(() => controller.abort(), 60_000);
   try {
     return await json<ChatResponse>(await fetch('/api/chat', {
       method: 'POST',
