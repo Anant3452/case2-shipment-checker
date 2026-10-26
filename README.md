@@ -1,5 +1,7 @@
 # Shipment booking and pre-flight checker
 
+**Live app:** https://case2-shipment-checker.onrender.com (free tier: the first visit after a quiet spell can take about 30 seconds to wake up)
+
 Describe a UK-to-EU shipment in plain language, or upload Bookings and Items sheets, and get every booking checked before it leaves. Lanes: UK (London, Manchester, Birmingham, Leeds) to Germany, France and the Netherlands. GBP only. No login, no cookies.
 
 ## Run locally
